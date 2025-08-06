@@ -1,40 +1,85 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 
-BOT_TOKEN = "8288634287:AAF1jpfEt3CMDExMidVw6qp3Jo5iZg1uwIU"
-MAIN_CHANNEL = "@unseentabs"
-MAIN_CHANNEL_LINK = "https://t.me/unseentabs"
+import os
 
-# Links
-JAV_LINK = "https://t.me/+A5sllB-vY4diNzk9"
-OF_LINK = "https://t.me/+IO7rG_j0CFE3NDg9"
-FAV_LINK = "https://t.me/+4X0ep0FK_lc2Nzg1"
+MAIN_CHANNEL_ID = -1002441344477  # Replace with your @unseentabs channel ID
 
-def start(update: Update, context: CallbackContext):
-    user_id = update.effective_user.id
-    try:
-        member = context.bot.get_chat_member(MAIN_CHANNEL, user_id)
-        if member.status in ['member', 'administrator', 'creator']:
-            keyboard = [
-                [InlineKeyboardButton("🔞 Jav Nation", callback_data="jav")],
-                [InlineKeyboardButton("🔥 OnlyFans Nation", callback_data="of")],
-                [InlineKeyboardButton("💖 Favhouse Nation", callback_data="fav")]
-            ]
-            reply_markup = InlineKeyboardMarkup(keyboard)
-            update.message.reply_text("✅ Aap ne channel join kar liya hai.\nAb niche se category select karein:", reply_markup=reply_markup)
-        else:
-            raise Exception("Not joined")
-    except:
+# 🔘 Button groups
+channel_buttons = {
+    "jav": [
+        ("🔞 Jav Nation", "https://t.me/+A5sllB-vY4diNzk9"),
+        ("🥵 Jav Collection", "https://t.me/+A5sllB-vY4diNzk9"),
+    ],
+    "onlyfans": [
+        ("🔥 OnlyFans Nation", "https://t.me/+IO7rG_j0CFE3NDg9"),
+        ("💀 OnlyFans Collection", "https://t.me/+IO7rG_j0CFE3NDg9"),
+    ],
+    "favhouse": [
+        ("💖 Favhouse Nation", "https://t.me/+4X0ep0FK_lc2Nzg1"),
+        ("🩷 Favhouse Collection", "https://t.me/+4X0ep0FK_lc2Nzg1"),
+    ],
+}
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+    member = await context.bot.get_chat_member(chat_id=MAIN_CHANNEL_ID, user_id=user.id)
+    
+    if member.status in ["left", "kicked"]:
         join_button = InlineKeyboardMarkup([
-            [InlineKeyboardButton("👉 Pehle Unseen Tabs Join Karo", url=MAIN_CHANNEL_LINK)]
+            [InlineKeyboardButton("🔐 Join Main Channel", url="https://t.me/unseentabs")],
+            [InlineKeyboardButton("✅ I've Joined", callback_data="check_join")]
         ])
-        update.message.reply_text("❌ Pehle aapko hamara main channel join karna hoga.", reply_markup=join_button)
+        await update.message.reply_text("Please join the main channel to continue:", reply_markup=join_button)
+    else:
+        await show_categories(update, context)
 
-def button_handler(update: Update, context: CallbackContext):
+async def check_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    user_id = query.from_user.id
+    await query.answer()
+    user = query.from_user
+    member = await context.bot.get_chat_member(chat_id=MAIN_CHANNEL_ID, user_id=user.id)
+
+    if member.status in ["left", "kicked"]:
+        await query.edit_message_text("❌ You haven't joined the main channel yet.")
+    else:
+        await show_categories(update, context, query)
+
+async def show_categories(update: Update, context: ContextTypes.DEFAULT_TYPE, query=None):
+    buttons = [
+        [InlineKeyboardButton("🔞 JAV", callback_data="jav")],
+        [InlineKeyboardButton("🔥 OnlyFans", callback_data="onlyfans")],
+        [InlineKeyboardButton("💖 Favhouse", callback_data="favhouse")],
+    ]
+    reply_markup = InlineKeyboardMarkup(buttons)
+
+    if query:
+        await query.edit_message_text("Select a category:", reply_markup=reply_markup)
+    else:
+        await update.message.reply_text("Select a category:", reply_markup=reply_markup)
+
+async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
     data = query.data
 
+    if data in channel_buttons:
+        buttons = [[InlineKeyboardButton(text, url=url)] for text, url in channel_buttons[data]]
+        await query.edit_message_text("Here are your channels:", reply_markup=InlineKeyboardMarkup(buttons))
+
+async def main():
+    token = os.getenv("BOT_TOKEN")
+    app = ApplicationBuilder().token(token).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(check_join, pattern="check_join"))
+    app.add_handler(CallbackQueryHandler(handle_button))
+
+    await app.run_polling()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
     try:
         member = context.bot.get_chat_member(MAIN_CHANNEL, user_id)
         if member.status in ['member', 'administrator', 'creator']:
