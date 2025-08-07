@@ -53,7 +53,6 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         btns = [[InlineKeyboardButton(text, url=url)] for text, url in channel_buttons[data]]
         await query.edit_message_text("Here are your channels:", reply_markup=InlineKeyboardMarkup(btns))
 
-# ✅ Ab async main function banate hain:
 async def main():
     token = os.getenv("BOT_TOKEN")
     app = ApplicationBuilder().token(token).build()
@@ -63,8 +62,7 @@ async def main():
     app.add_handler(CallbackQueryHandler(handle_button))
 
     print("Bot is running...")
-    await app.run_polling()  # ✅ Await async function
+    await app.run_polling()
 
-# ✅ Ye part sabse important hai:
 if __name__ == "__main__":
     asyncio.run(main())
