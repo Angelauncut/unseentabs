@@ -13,19 +13,26 @@ channel_links = [
     ("🩷 Favhouse Collection", "https://t.me/+4X0ep0FK_lc2Nzg1"),
 ]
 
+# 🔁 Join message and buttons
 def get_join_markup():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("✅ Pehle Channel Join Karein", url="https://t.me/unseentabs")],
         [InlineKeyboardButton("🔄 Dobara Try Karein", callback_data="check_join")]
     ])
 
+# 🔁 Show all 6 categories
 def get_channel_markup():
     return InlineKeyboardMarkup([[InlineKeyboardButton(text, callback_data=f"open_{i}")] for i, (text, _) in enumerate(channel_links)])
 
+# ✅ Membership check
 async def is_user_joined(user_id, context):
-    member = await context.bot.get_chat_member(chat_id=MAIN_CHANNEL_ID, user_id=user_id)
-    return member.status not in ["left", "kicked"]
+    try:
+        member = await context.bot.get_chat_member(chat_id=MAIN_CHANNEL_ID, user_id=user_id)
+        return member.status not in ["left", "kicked"]
+    except:
+        return False
 
+# 🔁 /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if await is_user_joined(user.id, context):
@@ -39,6 +46,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=get_join_markup()
         )
 
+# 🔁 Check join callback
 async def check_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -55,6 +63,7 @@ async def check_join(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=get_join_markup()
         )
 
+# 🔁 Button clicked: Jav Nation, etc
 async def handle_channel_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -69,12 +78,13 @@ async def handle_channel_button(update: Update, context: ContextTypes.DEFAULT_TY
 
     index = int(query.data.replace("open_", ""))
     text, url = channel_links[index]
-    await query.message.reply_text(
-        f"🔗 {text}",
-        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(text, url=url)]])
+    # Open channel directly (no second button layer)
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text=f"🔗 {text}:\n{url}"
     )
 
-# ✅ Railway-Compatible Launch
+# ✅ Railway-compatible startup
 if __name__ == "__main__":
     token = os.getenv("BOT_TOKEN")
     if not token:
