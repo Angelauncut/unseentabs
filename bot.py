@@ -2,7 +2,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 import os
 
-MAIN_CHANNEL_ID = -1002441344477  # Replace with your channel ID
+MAIN_CHANNEL_ID = -1002441344477
 
 channel_buttons = {
     "jav": [("🔞 Jav Nation", "https://t.me/+A5sllB-vY4diNzk9"), ("🥵 Jav Collection", "https://t.me/+A5sllB-vY4diNzk9")],
