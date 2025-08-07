@@ -3,7 +3,7 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Callb
 import os
 import asyncio
 
-MAIN_CHANNEL_ID = -1002441344477
+MAIN_CHANNEL_ID = -1002441344477  # Replace with your main channel ID
 
 channel_buttons = {
     "jav": [("🔞 Jav Nation", "https://t.me/+A5sllB-vY4diNzk9"), ("🥵 Jav Collection", "https://t.me/+A5sllB-vY4diNzk9")],
@@ -62,8 +62,13 @@ async def main():
     app.add_handler(CallbackQueryHandler(handle_button))
 
     print("Bot is running...")
-    await app.run_polling()
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+    # Keep it alive
+    await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    # Fixed the loop error for Python 3.13+
-    asyncio.get_event_loop().run_until_complete(main())
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())
+    loop.run_forever()
