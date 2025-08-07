@@ -52,23 +52,25 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         btns = [[InlineKeyboardButton(text, url=url)] for text, url in channel_buttons[data]]
         await query.edit_message_text("Here are your channels:", reply_markup=InlineKeyboardMarkup(btns))
 
-async def main():
-    token = os.getenv("BOT_TOKEN")
-    if not token:
-        print("❌ BOT_TOKEN not found. Set it in Railway Environment Variables.")
-        return
-
-    app = ApplicationBuilder().token(token).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(check_join, pattern="check_join"))
-    app.add_handler(CallbackQueryHandler(handle_button))
-
-    print("✅ Bot is running...")
-    await app.run_polling()
-
+# ✅ DO NOT use asyncio.run()
+# ✅ Railway compatible way to start bot:
 if __name__ == "__main__":
     import asyncio
-    loop = asyncio.get_event_loop()
-    loop.create_task(main())
-    loop.run_forever()
+
+    async def run():
+        token = os.getenv("BOT_TOKEN")
+        if not token:
+            print("❌ BOT_TOKEN not found. Set it in Railway Variables.")
+            return
+
+        app = ApplicationBuilder().token(token).build()
+
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CallbackQueryHandler(check_join, pattern="check_join"))
+        app.add_handler(CallbackQueryHandler(handle_button))
+
+        print("✅ Bot is running...")
+        await app.run_polling()
+
+    asyncio.get_event_loop().create_task(run())
+    asyncio.get_event_loop().run_forever()
