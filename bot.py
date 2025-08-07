@@ -1,6 +1,7 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 import os
+import asyncio
 
 MAIN_CHANNEL_ID = -1002441344477
 
@@ -52,10 +53,8 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
         btns = [[InlineKeyboardButton(text, url=url)] for text, url in channel_buttons[data]]
         await query.edit_message_text("Here are your channels:", reply_markup=InlineKeyboardMarkup(btns))
 
-# ✅ FIXED Railway-Compatible Bot Launcher
+# ✅ FIXED FOR RAILWAY
 if __name__ == "__main__":
-    import asyncio
-
     token = os.getenv("BOT_TOKEN")
     if not token:
         print("❌ BOT_TOKEN not found. Set it in Railway Variables.")
@@ -67,6 +66,5 @@ if __name__ == "__main__":
         app.add_handler(CallbackQueryHandler(handle_button))
 
         print("✅ Bot is running...")
-
-        # 🔁 Instead of asyncio.run() — run forever safely
-        app.run_polling(stop_signals=None)
+        # ✅ No asyncio.run — works perfectly in Railway Background Worker
+        app.run_polling()
