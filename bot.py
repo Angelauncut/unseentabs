@@ -1,7 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
 import os
-import asyncio
 
 MAIN_CHANNEL_ID = -1002441344477
 
@@ -55,14 +54,21 @@ async def handle_button(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def main():
     token = os.getenv("BOT_TOKEN")
+    if not token:
+        print("❌ BOT_TOKEN not found. Set it in Railway Environment Variables.")
+        return
+
     app = ApplicationBuilder().token(token).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(check_join, pattern="check_join"))
     app.add_handler(CallbackQueryHandler(handle_button))
 
-    print("Bot is running...")
+    print("✅ Bot is running...")
     await app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.create_task(main())
+    loop.run_forever()
